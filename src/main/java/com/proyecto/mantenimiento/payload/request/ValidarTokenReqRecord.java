@@ -1,4 +1,6 @@
 package com.proyecto.mantenimiento.payload.request;
 
-public record ValidarTokenReqRecord(String token) {
+import jakarta.validation.constraints.NotBlank;
+
+public record ValidarTokenReqRecord(@NotBlank String token) {
 }

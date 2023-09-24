@@ -29,9 +29,7 @@ public class UsuarioController {
 
     @PostMapping("/registrar")
     public ResponseEntity<LoginResRecord> registrarUsuario(@RequestBody @Validated LoginReqRecord registroReqRecord){
-        LoginResRecord token = service.registro(registroReqRecord);
-
-        return new ResponseEntity<LoginResRecord>(token, HttpStatus.CREATED);
+        return new ResponseEntity<LoginResRecord>(service.registro(registroReqRecord), HttpStatus.CREATED);
     }
 
     @PostMapping("/validar")

@@ -1,8 +1,8 @@
 package com.proyecto.mantenimiento.services.impl;
 
-import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.proyecto.mantenimiento.entities.Usuario;
+import com.proyecto.mantenimiento.exceptions.customs.UsuarioEnUsoException;
 import com.proyecto.mantenimiento.payload.request.LoginReqRecord;
 import com.proyecto.mantenimiento.payload.request.ValidarTokenReqRecord;
 import com.proyecto.mantenimiento.payload.response.LoginResRecord;
@@ -19,7 +19,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 @Service
-public class UsuruariosServiceImpl implements IUsuariosService {
+public class UsuariosServiceImpl implements IUsuariosService {
 
 
     @Autowired
@@ -37,7 +37,6 @@ public class UsuruariosServiceImpl implements IUsuariosService {
 
     @Override
     public LoginResRecord acceder(LoginReqRecord loginReqRecord) {
-
         var authentication =  managerDeAutenticacion.authenticate(
                 new UsernamePasswordAuthenticationToken(loginReqRecord.email(), loginReqRecord.password())
         );
@@ -45,13 +44,12 @@ public class UsuruariosServiceImpl implements IUsuariosService {
         String token = tokenService.generarToken(loginReqRecord.email());
 
         return new LoginResRecord(loginReqRecord.email(), token);
-
     }
 
     @Override
     public LoginResRecord registro(LoginReqRecord registroReqRecord) {
         if(repo.findByEmail(registroReqRecord.email()).isPresent()){
-            throw new RuntimeException("El email ya esta en uso");
+            throw new UsuarioEnUsoException("El usuario ya esta en uso.");
         }
 
         Usuario usuario = new Usuario(registroReqRecord.email(), passwordEncoder.encode(registroReqRecord.password()));
@@ -74,12 +72,12 @@ public class UsuruariosServiceImpl implements IUsuariosService {
         if ((Instant.now().until(decodedJWT.getExpiresAtAsInstant(), ChronoUnit.MINUTES)) < 30){
             String email =  decodedJWT.getClaim("idUsuario").toString();
             tokenNuevo = tokenService.generarToken(email);
-            return new LoginResRecord(null, tokenNuevo);
+            return new LoginResRecord(email, tokenNuevo);
         }
 
         //si no,se devuelve el mismo token validado
         tokenNuevo = token.token();
-        return new LoginResRecord(null, tokenNuevo);
+        return new LoginResRecord(decodedJWT.getClaim("idUsuario").toString(), tokenNuevo);
 
     }
 }

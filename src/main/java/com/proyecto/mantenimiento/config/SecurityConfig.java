@@ -2,12 +2,12 @@ package com.proyecto.mantenimiento.config;
 
 import com.proyecto.mantenimiento.security.filter.CustomAuthenticationFilter;
 import com.proyecto.mantenimiento.security.provider.AutenticacionProvider;
+import com.proyecto.mantenimiento.security.service.AuthEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,12 +18,14 @@ import org.springframework.security.web.access.ExceptionTranslationFilter;
 
 @Configuration
 @EnableWebSecurity(debug = true)
-@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
     @Lazy
     private AutenticacionProvider autenticacionProvider;
+
+    @Autowired
+    private AuthEntryPoint authEntryPoint;
 
     @Autowired
     private CustomAuthenticationFilter authenticationFilter;
@@ -38,6 +40,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception{
         httpSecurity
                 .csrf(csrf -> csrf.disable())
+                .exceptionHandling(ex -> ex.authenticationEntryPoint(authEntryPoint))
                 .authenticationProvider(autenticacionProvider)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {

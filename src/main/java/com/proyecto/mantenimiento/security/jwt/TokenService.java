@@ -3,9 +3,9 @@ package com.proyecto.mantenimiento.security.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.*;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.proyecto.mantenimiento.exceptions.customs.TokenNoValidoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,8 +56,12 @@ public class TokenService {
             DecodedJWT decodedJWT = jwtVerifier.verify(token);
 
             return decodedJWT;
-        }catch (JWTVerificationException e){
-            throw new JWTCreationException(e.getMessage(), e.getCause());
+        }catch (TokenExpiredException e){
+            throw new TokenExpiredException(e.getMessage(), Instant.now());
+        }catch (SignatureVerificationException e){
+            throw new TokenNoValidoException(e.getMessage());
+        }catch (JWTDecodeException e){
+            throw new TokenNoValidoException(e.getMessage());
         }
     }
 }

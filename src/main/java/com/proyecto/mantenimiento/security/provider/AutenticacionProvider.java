@@ -1,5 +1,6 @@
 package com.proyecto.mantenimiento.security.provider;
 
+import com.proyecto.mantenimiento.exceptions.customs.CredencialesErroneas;
 import com.proyecto.mantenimiento.security.models.UsuarioUserDetails;
 import com.proyecto.mantenimiento.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ public class AutenticacionProvider implements AuthenticationProvider {
                     userDetails.getAuthorities());
         }
 
-        throw new BadCredentialsException("Credenciales erroneas");
+        throw new CredencialesErroneas("Credenciales erroneas");
     }
 
     /***

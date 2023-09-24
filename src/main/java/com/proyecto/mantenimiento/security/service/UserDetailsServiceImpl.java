@@ -1,6 +1,7 @@
 package com.proyecto.mantenimiento.security.service;
 
 import com.proyecto.mantenimiento.entities.Usuario;
+import com.proyecto.mantenimiento.exceptions.customs.CredencialesErroneas;
 import com.proyecto.mantenimiento.repos.IUsuariosRepo;
 import com.proyecto.mantenimiento.security.models.UsuarioUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Usuario usuario = repo.findByEmail(username).orElseThrow(() -> new BadCredentialsException("Credenciales erroneas"));
+        Usuario usuario = repo.findByEmail(username).orElseThrow(() -> new CredencialesErroneas("Credenciales erroneas"));
 
         return new UsuarioUserDetails(usuario);
     }
