@@ -105,9 +105,12 @@
 				<configuration>
 					<excludes>
 						<exclude>**/config/*.class</exclude>
-						<exclude>**/entities/*.class</exclude>
+						<exclude>**/jwt/*.class</exclude>
 						<exclude>**/exceptions/*.class</exclude>
 						<exclude>**/payload/*.class</exclude>
+						<exclude>**/provider/*.class</exclude>
+						<exclude>**/manager/*.class</exclude>
+						<exclude>**/security/service/*.class</exclude>
 					</excludes>
 				</configuration>
 

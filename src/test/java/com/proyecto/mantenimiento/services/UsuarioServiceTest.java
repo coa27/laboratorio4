@@ -16,6 +16,7 @@ import com.proyecto.mantenimiento.repos.IUsuariosRepo;
 import com.proyecto.mantenimiento.security.jwt.TokenService;
 import com.proyecto.mantenimiento.security.manager.ManagerDeAutenticacion;
 import com.proyecto.mantenimiento.services.impl.UsuariosServiceImpl;
+import jakarta.validation.ConstraintViolationException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
@@ -69,13 +74,11 @@ public class UsuarioServiceTest {
      * Variables y constantes que necesitamos para los tokens
      */
     private static final String LLAVE = "LjWYIzO5xKCpRrWdujjxMPDT8jTm0ccO9AM7Wo6q";
-    private static final String LLAVE_NUEVA = "laboratorio4";
     private static final String ISSUER = "coasth_";
     private static final String CLAIM = "email";
     private static final String DATA = "hola@hotmail.com";
 
     private static Algorithm algoritmo;
-    private static Algorithm algoritmoConDiferenteLlave;
     private static JWTVerifier verifier;
     private static String token;
     private static String tokenNuevo;
@@ -85,7 +88,6 @@ public class UsuarioServiceTest {
     @BeforeAll
     public static void setUp(){
         algoritmo = Algorithm.HMAC512(LLAVE);
-        algoritmoConDiferenteLlave = Algorithm.HMAC512(LLAVE_NUEVA);
 
         token = JWT.create()
                 .withIssuer(ISSUER)
@@ -119,8 +121,8 @@ public class UsuarioServiceTest {
      */
     @Test
     public void dadoUsuarioValidoEnRegistro_returnExitoso(){
-        Usuario usuarioMocked = new Usuario("hola@hotmail.com", "1234");
         LoginReqRecord usuarioNuevo =  new LoginReqRecord("hola@hotmail.com", "1234");
+        Usuario usuarioMocked = new Usuario("hola@hotmail.com", "1234");
 
         when(repo.findByEmail(anyString()))
                 .thenReturn(Optional.empty());
@@ -137,6 +139,7 @@ public class UsuarioServiceTest {
 
         //Se verifica que el usuario no sea nulo
         Assertions.assertThat(usuarioSaved).isNotNull();
+        Assertions.assertThat(usuarioSaved.email()).isEqualTo(usuarioMocked.getEmail());
     }
 
     @Test
@@ -149,6 +152,17 @@ public class UsuarioServiceTest {
 
         //se verifica que se retorne la exception creada para usuarios en uso
         assertThrows(UsuarioEnUsoException.class, () -> service.registro(usuarioNuevo));
+    }
+
+    @Test
+    public void dadoUsuarioSinContraseniaValidaEnRegistro_returnException(){
+        LoginReqRecord usuarioNuevo =  new LoginReqRecord("hola@hotmail.com", "12");
+
+        when(repo.findByEmail("hola@hotmail.com"))
+                .thenReturn(Optional.empty());
+
+        //se verifica que se retorne la exception creada para las passwords
+        assertThrows(CredencialesErroneas.class, () -> service.registro(usuarioNuevo));
     }
 
     @Test
@@ -169,6 +183,7 @@ public class UsuarioServiceTest {
         LoginResRecord usuario = service.acceder(usuarioMocked);
 
         Assertions.assertThat(usuario).isNotNull();
+        Assertions.assertThat(usuario.email()).isEqualToIgnoringCase(usuarioMocked.email());
     }
 
     @Test
@@ -228,6 +243,19 @@ public class UsuarioServiceTest {
     @Test
     public void dadoTokenInvalido_returnException(){
         assertThrows(JWTDecodeException.class, () -> verifier.verify("tokenInvalido"));
+    }
+
+    @Test
+    public void dadoUnaContrasenaTexto_returnEncriptado(){
+        //obtenemos una referencia de la funcion de hash con la que vamos a encriptar la contrasena
+        PasswordEncoder encoder = new BCryptPasswordEncoder();
+
+        //pasamos por el servicio de encriptacion, la contrasena en texto plano
+        //nos devuelve una contrasena encriptada en hash por la funcion de Bcrypt
+        String password = encoder.encode("12345");
+
+        //nos aseguramos que la contrasena no sean iguales
+        Assertions.assertThat(password).isNotEqualTo("12345");
     }
 
 }

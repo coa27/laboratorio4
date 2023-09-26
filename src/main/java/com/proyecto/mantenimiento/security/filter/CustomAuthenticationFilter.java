@@ -2,12 +2,15 @@ package com.proyecto.mantenimiento.security.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.proyecto.mantenimiento.entities.Usuario;
+import com.proyecto.mantenimiento.exceptions.customs.TokenNoValidoException;
+import com.proyecto.mantenimiento.exceptions.customs.UsuarioNoEncontradoException;
 import com.proyecto.mantenimiento.repos.IUsuariosRepo;
 import com.proyecto.mantenimiento.security.jwt.TokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.TransactionRequiredException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,18 +40,18 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             if (!request.getHeader("Authorization").startsWith("Bearer ")){
-                throw new HttpRequestMethodNotSupportedException("No tiene token");
+                throw new TokenNoValidoException("No tiene token");
             }
 
         }catch (NullPointerException e){
-            throw new HttpRequestMethodNotSupportedException("No tiene el header para la autenticacion del token");
+            throw new TokenNoValidoException("No tiene el header para la autenticacion del token");
         }
 
         String token = request.getHeader("Authorization").substring(7);
 
         DecodedJWT jwt = service.validarJwt(token);
         Usuario usuario = repo.findByEmail(jwt.getClaim("email").asString())
-                .orElseThrow(() -> new UsernameNotFoundException("no existe usuario"));
+                .orElseThrow(() -> new UsuarioNoEncontradoException("no existe usuario"));
 
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 

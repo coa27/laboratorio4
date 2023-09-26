@@ -56,11 +56,11 @@ public class UsuarioControllerTest {
 
     @Test
     public void dadoUsuarioValidoEnRegistro_returnExitoso() throws Exception {
-
         LoginReqRecord loginReqRecord = new LoginReqRecord("hola@hotmail.com", "12345");
         when(service.registro(any()))
                 .thenReturn(loginResRecord);
 
+        //se simula una request con los parametros validos
         mockMvc.perform(post("/auth/registrar")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsBytes(loginReqRecord))
@@ -94,7 +94,7 @@ public class UsuarioControllerTest {
     }
 
     @Test
-    public void dadoUsuarioNoValidoEnAcceso_returnExitoso() throws Exception {
+    public void dadoUsuarioNoValidoEnAcceso_returnException() throws Exception {
         LoginReqRecord loginReqRecord = new LoginReqRecord("hola@hotmail.com", "12");
 
         when(service.registro(any()))

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -39,11 +40,10 @@ public class Usuario {
     private Long idUsuario;
 
     @NotBlank
-    @Email
+    @Column(unique = true)
     private String email;
 
     @NotBlank
-//    @Size(min = 3, max = 18, message = "La contrasenia debe tener entre 3 a 18 caracteres")
     private String contrasenia;
 
     @Column(name = "created_at")
